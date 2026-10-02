@@ -5,137 +5,8 @@
  * 
  * bits.c - Source file with your solutions to the Lab.
  *          This is the file you will hand in to your instructor.
- *
- * WARNING: Do not include the <stdio.h> header; it confuses the dlc
- * compiler. You can still use printf for debugging without including
- * <stdio.h>, although you might get a compiler warning. In general,
- * it's not good practice to ignore compiler warnings, but in this
- * case it's OK.  
  */
 
-#if 0
-/*
- * Instructions to Students:
- *
- * STEP 1: Read the following instructions carefully.
- */
-
-You will provide your solution to the Data Lab by
-editing the collection of functions in this source file.
-
-INTEGER CODING RULES:
-
-  Replace the "return" statement in each function with one
-  or more lines of C code that implements the function. Your code 
-  must conform to the following style:
- 
-  int Funct(arg1, arg2, ...) {
-      /* brief description of how your implementation works */
-      int var1 = Expr1;
-      ...
-      int varM = ExprM;
-
-      varJ = ExprJ;
-      ...
-      varN = ExprN;
-      return ExprR;
-  }
-
-  Each "Expr" is an expression using ONLY the following:
-  1. Integer constants 0 through 255 (0xFF), inclusive. You are
-      not allowed to use big constants such as 0xffffffff.
-  2. Function arguments and local variables (no global variables).
-  3. Unary integer operations ! ~
-  4. Binary integer operations & ^ | + << >>
-    
-  Some of the problems restrict the set of allowed operators even further.
-  Each "Expr" may consist of multiple operators. You are not restricted to
-  one operator per line.
-
-  You are expressly forbidden to:
-  1. Use any control constructs such as if, do, while, for, switch, etc.
-  2. Define or use any macros.
-  3. Define any additional functions in this file.
-  4. Call any functions.
-  5. Use any other operations, such as &&, ||, -, or ?:
-  6. Use any form of casting.
-  7. Use any data type other than int.  This implies that you
-     cannot use arrays, structs, or unions.
-
- 
-  You may assume that your machine:
-  1. Uses 2s complement, 32-bit representations of integers.
-  2. Performs right shifts arithmetically.
-  3. Has unpredictable behavior when shifting if the shift amount
-     is less than 0 or greater than 31.
-  4. Interprets integer expressions using the Data Lab 32-bit bit-vector
-     model: results outside the signed range retain their low 32 bits.
-
-
-EXAMPLES OF ACCEPTABLE CODING STYLE:
-  /*
-   * pow2plus1 - returns 2^x + 1, where 0 <= x <= 31
-   */
-  int pow2plus1(int x) {
-     /* exploit ability of shifts to compute powers of 2 */
-     return (1 << x) + 1;
-  }
-
-  /*
-   * pow2plus4 - returns 2^x + 4, where 0 <= x <= 31
-   */
-  int pow2plus4(int x) {
-     /* exploit ability of shifts to compute powers of 2 */
-     int result = (1 << x);
-     result += 4;
-     return result;
-  }
-
-FLOATING POINT CODING RULES
-
-For the problems that require you to implement floating-point operations,
-the coding rules are less strict.  You are allowed to use looping and
-conditional control.  You are allowed to use both ints and unsigneds.
-You can use arbitrary integer and unsigned constants. You can use any arithmetic,
-logical, or comparison operations on int or unsigned data.
-
-You are expressly forbidden to:
-  1. Define or use any macros.
-  2. Define any additional functions in this file.
-  3. Call any functions.
-  4. Use any form of casting.
-  5. Use any data type other than int or unsigned.  This means that you
-     cannot use arrays, structs, or unions.
-  6. Use any floating point data types, operations, or constants.
-
-
-NOTES:
-  1. Use the dlc (data lab checker) compiler (described in the handout) to 
-     check the legality of your solutions.
-  2. Each function has a maximum number of operations (integer, logical,
-     or comparison) that you are allowed to use for your implementation
-     of the function.  The max operator count is checked by dlc.
-     Note that assignment ('=') is not counted; you may use as many of
-     these as you want without penalty.
-  3. Use the btest test harness to check your functions for correctness.
-  4. Use the BDD checker to formally verify your functions
-  5. The maximum number of ops for each function is given in the
-     header comment for each function. If there are any inconsistencies 
-     between the maximum ops in the writeup and in this file, consider
-     this file the authoritative source.
-
-/*
- * STEP 2: Modify the following functions according the coding rules.
- * 
- *   IMPORTANT. TO AVOID GRADING SURPRISES:
- *   1. Use the dlc compiler to check that your solutions conform
- *      to the coding rules.
- *   2. Use the BDD checker to formally verify that your solutions produce 
- *      the correct answers.
- */
-
-
-#endif
 #include "bits.h"
 
 // P1
@@ -146,7 +17,8 @@ NOTES:
  *   Rating: 1
  */
 int signMask(void) {
-  return 1;
+  // 将 1 左移 31 位即可得到 0x80000000
+  return 1 << 31;
 }
 
 // P2
@@ -158,7 +30,8 @@ int signMask(void) {
  *   Rating: 2
  */
 int bitXor(int x, int y) {
-	return 2;
+  // 利用德摩根定律: x ^ y = (x | y) & ~(x & y) = ~(~x & ~y) & ~(x & y)
+  return ~(x & y) & ~(~x & ~y);
 }
 
 // P3
@@ -170,9 +43,10 @@ int bitXor(int x, int y) {
  *   Rating: 3
  */
 int negativePart(int x){
-  return 3;
+  // 算术右移 31 位：负数变成全 1 (-1/0xFFFFFFFF)，非负数变成全 0
+  // -x 在补码中等于 ~x + 1
+  return (~x + 1) & (x >> 31);
 }
-
 
 // P4
 /*
@@ -185,7 +59,11 @@ int negativePart(int x){
  *   Rating: 4
  */
 int copyByteWithin(int x, int src, int dst) {
-  return 4;
+  int s = src << 3; // 等同于 src * 8
+  int d = dst << 3; // 等同于 dst * 8
+  int b = (x >> s) & 0xFF; // 提取 src 字节
+  int m = ~(0xFF << d);    // 构造清空 dst 字节的掩码
+  return (x & m) | (b << d);
 }
 
 // P5
@@ -198,7 +76,10 @@ int copyByteWithin(int x, int src, int dst) {
  *   Rating: 4
  */
 int logicalShift(int x, int n) {
-  return 5;
+  // 由于右移是算术右移，我们必须把高 n 位强制清零
+  // 构造掩码：最高位 1 算术右移 n 位后再左移 1 位，取反后正好是低 (32-n) 位全为 1 的掩码
+  int mask = ~(1 << 31 >> n << 1);
+  return (x >> n) & mask;
 }
 
 // P6
@@ -210,7 +91,11 @@ int logicalShift(int x, int n) {
  *   Rating: 4
  */
 int swapNibblePairs(int x) {
-  return 6;
+  // 构造 0x0F0F0F0F 掩码
+  int m = 0x0F | (0x0F << 8);
+  m = m | (m << 16);
+  // 高 4 位右移，低 4 位左移，最后组合
+  return ((x & m) << 4) | ((x >> 4) & m);
 }
 
 // P7
@@ -223,7 +108,10 @@ int swapNibblePairs(int x) {
  *   Rating: 4
  */
 int secondLowestZeroBit(int x) {
-  return 7;
+  // x | (x + 1) 可以把最低位的 0 变成 1，而保持其余位不变
+  int x1 = x | (x + 1);
+  // ~x1 & (x1 + 1) 则可以隔离出此时最新的最低位 0 (即原本的次低位 0)
+  return ~x1 & (x1 + 1);
 }
 
 // P8
@@ -236,7 +124,14 @@ int secondLowestZeroBit(int x) {
  *   Rating: 5
  */
 int oddParity(int x) {
-  return 8;
+  // 将 32 位的异或和折叠到第 0 位
+  x ^= x >> 16;
+  x ^= x >> 8;
+  x ^= x >> 4;
+  x ^= x >> 2;
+  x ^= x >> 1;
+  // 如果 1 的总数是偶数，异或和为 0，取反(!x)可返回 1
+  return (~x) & 1;
 }
 
 // P9
@@ -249,7 +144,13 @@ int oddParity(int x) {
  *   Rating: 5
  */
 int rotateRightBits(int x, int n) {
-  return 9;
+  // n 取模 32
+  n = n & 31;
+  // shift_left = 32 - n。为避免非法左移 32 位，使用 (~n + 33) & 31
+  int shift_left = (~n + 33) & 31;
+  // 右移部分（需转逻辑右移避免负数高位补1）
+  int mask = ~(1 << 31 >> n << 1);
+  return ((x >> n) & mask) | (x << shift_left);
 }
 
 // P10
@@ -264,7 +165,14 @@ int rotateRightBits(int x, int n) {
  *   Rating: 5
  */
 int roundEvenPow2(int x, int n) {
-  return 10;
+  // 这题非常精妙，向最近的 2^n 舍入，本质上是给 x 加上一个偏移量 (bias) 后截断低 n 位
+  int n_minus_1 = n + ~0;
+  int half = 1 << n_minus_1;         // 2^(n-1)
+  int mask = (half << 1) + ~0;       // 2^n - 1，即低 n 位掩码
+  int bit_n = (x >> n) & 1;          // 检查商的奇偶性
+  // 如果商是奇数(bit_n=1)，加上 2^(n-1) 让中间值进位（向偶数舍入）；如果是偶数，加上 2^(n-1)-1，中间值不进位
+  int bias = half + ~0 + bit_n; 
+  return (x + bias) & ~mask;
 }
 
 // P11
@@ -280,9 +188,17 @@ int roundEvenPow2(int x, int n) {
  *   Rating: 5
  */
 int midpointTowardFirst(int x, int y) {
-  return 11;
+  int sign_x = x >> 31;
+  int sign_y = y >> 31;
+  int diff = x + ~y + 1;             // x - y
+  int sign_diff = diff >> 31;
+  // 计算 x > y 的掩码 (考虑符号不同的溢出情况)
+  int mask = (~sign_x & sign_y) | (~(sign_x ^ sign_y) & ~sign_diff);
+  // 常规向下取整的中点公式
+  int floor_mid = (x & y) + ((x ^ y) >> 1);
+  // 当 x > y 并且 x,y 一奇一偶 (中点在两个整数之间) 时，加 1
+  return floor_mid + (mask & (x ^ y) & 1);
 }
-
 
 // P12
 /* 
@@ -294,7 +210,25 @@ int midpointTowardFirst(int x, int y) {
  *   Rating: 7
  */
 int isBetweenEitherOrder(int x, int a, int b) {
-  return 12;
+  int sx = x >> 31;
+  int sa = a >> 31;
+  int sb = b >> 31;
+  int not_sx = ~sx;
+  int not_sa = ~sa;
+  int not_sb = ~sb;
+  int not_x = ~x;
+  
+  int eq_xa = ~(sx ^ sa);
+  int eq_xb = ~(sx ^ sb);
+  
+  // 稳健的大于等于 (>=) 比较逻辑，避免 a-b 直接相减导致溢出
+  int x_ge_a = (not_sx & sa) | (eq_xa & ~((x + not_sa + 1) >> 31));
+  int b_ge_x = (not_sb & sx) | (eq_xb & ~((b + not_x + 1) >> 31));
+  int x_ge_b = (not_sx & sb) | (eq_xb & ~((x + not_sb + 1) >> 31));
+  int a_ge_x = (not_sa & sx) | (eq_xa & ~((a + not_x + 1) >> 31));
+  
+  // (x >= a && b >= x) || (x >= b && a >= x)
+  return ((x_ge_a & b_ge_x) | (x_ge_b & a_ge_x)) & 1;
 }
 
 // P13
@@ -307,7 +241,19 @@ int isBetweenEitherOrder(int x, int a, int b) {
  *   Rating: 7
  */
 int mul5Sat(int x) {
-  return 13;
+  int sign_x = x >> 31;
+  int x4 = x << 2;
+  int res = x + x4; // 5x
+  int sign_res = res >> 31;
+  
+  // 检测上溢/下溢：如果 x>>29 不是纯符号，说明 x<<2 已经溢出
+  // 或者 x 与 x4 同号但相加后变号，也是溢出
+  int over = ((x >> 29) ^ sign_x) | (sign_x ^ sign_res);
+  int max = ~(1 << 31);       // 0x7FFFFFFF
+  int sat = sign_x ^ max;     // 如果 x 是正数，饱和为 0x7FFFFFFF；如果是负数，饱和为 0x80000000
+  int mask = ~(!!over) + 1;   // 如果 overflow，mask 为全 1；否则全 0
+  
+  return (mask & sat) | (~mask & res);
 }
 
 // P14
@@ -320,7 +266,25 @@ int mul5Sat(int x) {
  *   Rating: 7
  */
 int classifyAdd3(int x, int y, int z) {
-  return 14;
+  // 通过符号扩展提取 64 位视角下的高 32 位
+  int hx = x >> 31;
+  int hy = y >> 31;
+  int hz = z >> 31;
+  
+  int sum1 = x + y;
+  // 提取进位 (carry) 的逻辑公式
+  int c1 = ((x & y) | ((x | y) & ~sum1)) >> 31 & 1;
+  
+  int sum2 = sum1 + z;
+  int c2 = ((sum1 & z) | ((sum1 | z) & ~sum2)) >> 31 & 1;
+  
+  // 理论上的 64 位无损加法的高 32 位结果
+  int upper = hx + hy + hz + c1 + c2;
+  // 正常情况下，高 32 位应该等于低 32 位的符号位
+  int target = sum2 >> 31;
+  
+  // upper - target 刚好等于数学上所需的分类状态 (+1, 0, -1)
+  return upper + ~target + 1;
 }
 
 // P15
@@ -337,7 +301,38 @@ int classifyAdd3(int x, int y, int z) {
  *   Rating: 7
  */
 unsigned floatScaleThreeHalves(unsigned uf) {
-  return 15;
+  unsigned sign = uf & 0x80000000;
+  unsigned exp = (uf >> 23) & 0xFF;
+  unsigned frac = uf & 0x007FFFFF;
+
+  if (exp == 0xFF) return uf; // NaN or Inf
+
+  if (exp == 0) { // 非规格化数
+      unsigned frac3 = frac + (frac << 1); // frac * 3
+      // 向偶数舍入除以 2
+      unsigned new_frac = (frac3 >> 1) + ((frac3 & 3) == 3);
+      return sign | new_frac; 
+  }
+
+  // 规格化数
+  unsigned M = 0x00800000 | frac;
+  unsigned M3 = M + (M << 1);
+  
+  if (M3 >= 0x02000000) {
+      unsigned quo = M3 >> 2;
+      unsigned rem = M3 & 3;
+      frac = quo + (rem > 2 || (rem == 2 && (quo & 1)));
+      exp += 1;
+  } else {
+      unsigned quo = M3 >> 1;
+      unsigned rem = M3 & 1;
+      frac = quo + (rem == 1 && (quo & 1));
+  }
+
+  // 乘后指数溢出成为 Inf
+  if (exp >= 0xFF) return sign | 0x7F800000;
+
+  return sign | (exp << 23) | (frac & 0x007FFFFF);
 }
 
 // P16
@@ -353,7 +348,32 @@ unsigned floatScaleThreeHalves(unsigned uf) {
  *   Rating: 10
  */
 unsigned floatRoundEven(unsigned uf) {
-  return 16;
+  unsigned sign = uf & 0x80000000;
+  unsigned exp = (uf >> 23) & 0xFF;
+  unsigned frac = uf & 0x007FFFFF;
+
+  if (exp == 0xFF) return uf;
+
+  if (exp < 127) { // 绝对值小于 1 的情况
+      if (exp == 126 && frac > 0) return sign | 0x3F800000; // 超出 0.5 进位到 1.0
+      return sign; // 小于等于 0.5，舍弃为 0.0
+  }
+
+  int E = exp - 127;
+  if (E >= 23) return uf; // 已经是一个整数，无小数部分可舍弃
+
+  unsigned shift = 23 - E;
+  unsigned mask = (1 << shift) - 1; // 小数部分掩码
+  unsigned rem = uf & mask;
+  unsigned half = 1 << (shift - 1);
+  unsigned quo = (uf >> shift) & 1; // 整数部分的最低位
+
+  // 向偶数舍入法则：大于一半，或等于一半且整数最低位是1，则进位
+  if (rem > half || (rem == half && quo)) {
+      uf += (1 << shift); // 直接在位级浮点表示上相加，处理阶码进位极为平滑
+  }
+  
+  return uf & ~mask; // 清空小数残余
 }
 
 // P17
@@ -367,10 +387,42 @@ unsigned floatRoundEven(unsigned uf) {
  *   Rating: 10
  */
 unsigned float_i2f(int x) {
-  return 17;
+  if (x == 0) return 0;
+  unsigned sign = x & 0x80000000;
+  unsigned ux = x;
+  // 全部统一为无符号处理（0x80000000 取负仍为其自身，完美契合无符号性质）
+  if (sign) ux = -x; 
+
+  int exp = 31;
+  unsigned mask = 0x80000000;
+  // 寻找最高位 1
+  while ((ux & mask) == 0) {
+      exp--;
+      mask >>= 1;
+  }
+  
+  unsigned frac;
+  if (exp <= 23) {
+      frac = (ux << (23 - exp)) & 0x007FFFFF;
+  } else {
+      int shift = exp - 23;
+      unsigned round_mask = (1 << shift) - 1;
+      unsigned rem = ux & round_mask;
+      unsigned half = 1 << (shift - 1);
+      unsigned quo = (ux >> shift) & 1;
+      
+      frac = (ux >> shift) & 0x007FFFFF;
+      // 尾数丢失阶段需遵守 IEEE 754 偶数舍入
+      if (rem > half || (rem == half && quo)) {
+          frac += 1;
+          if (frac >= 0x00800000) { // 如果尾数溢出产生进位
+              frac = 0;
+              exp += 1;
+          }
+      }
+  }
+  return sign | ((exp + 127) << 23) | frac;
 }
-
-
 
 // P18
 /*
@@ -381,7 +433,16 @@ unsigned float_i2f(int x) {
  *   Rating: 10
  */
 int bitCount(int x) {
-  return 18;
+  // 分治法实现汉明重量计数 (Hamming Weight)
+  int m1 = 0x55 | (0x55 << 8); m1 = m1 | (m1 << 16); // 0x55555555
+  int m2 = 0x33 | (0x33 << 8); m2 = m2 | (m2 << 16); // 0x33333333
+  int m4 = 0x0F | (0x0F << 8); m4 = m4 | (m4 << 16); // 0x0F0F0F0F
+  x = (x & m1) + ((x >> 1) & m1);
+  x = (x & m2) + ((x >> 2) & m2);
+  x = (x + (x >> 4)) & m4;
+  x = x + (x >> 8);
+  x = x + (x >> 16);
+  return x & 0x3F;
 }
 
 // P19
@@ -395,5 +456,20 @@ int bitCount(int x) {
  */
 int bitReverse(int x)
 {
-  return 19;
+  // 这里是最极限的操作数压榨：由于常数不能大于 255，这利用了极少的操作数来生成所有复杂的掩码
+  // Lexical count total 34 ops exactly.
+  int m16 = (0xFF << 8) | 0xFF;  // 0xFFFF
+  int m8 = m16 ^ (m16 << 8);     // 0x00FF00FF
+  int m4 = m8 ^ (m8 << 4);       // 0x0F0F0F0F
+  int m2 = m4 ^ (m4 << 2);       // 0x33333333
+  int m1 = m2 ^ (m2 << 1);       // 0x55555555
+  
+  // 按块翻转
+  x = (x << 16) | ((x >> 16) & m16);
+  x = ((x & m8) << 8) | ((x >> 8) & m8);
+  x = ((x & m4) << 4) | ((x >> 4) & m4);
+  x = ((x & m2) << 2) | ((x >> 2) & m2);
+  x = ((x & m1) << 1) | ((x >> 1) & m1);
+  
+  return x;
 }

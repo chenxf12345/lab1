@@ -213,21 +213,24 @@ int isBetweenEitherOrder(int x, int a, int b) {
   int sx = x >> 31;
   int sa = a >> 31;
   int sb = b >> 31;
+  
   int not_sx = ~sx;
   int not_sa = ~sa;
   int not_sb = ~sb;
-  int not_x = ~x;
   
-  int eq_xa = ~(sx ^ sa);
-  int eq_xb = ~(sx ^ sb);
+  int same_xa = ~(sx ^ sa);
+  int same_xb = ~(sx ^ sb);
   
-  // 稳健的大于等于 (>=) 比较逻辑，避免 a-b 直接相减导致溢出
-  int x_ge_a = (not_sx & sa) | (eq_xa & ~((x + not_sa + 1) >> 31));
-  int b_ge_x = (not_sb & sx) | (eq_xb & ~((b + not_x + 1) >> 31));
-  int x_ge_b = (not_sx & sb) | (eq_xb & ~((x + not_sb + 1) >> 31));
-  int a_ge_x = (not_sa & sx) | (eq_xa & ~((a + not_x + 1) >> 31));
+  int s_xa = (x + ~a + 1) >> 31;
+  int s_ax = (a + ~x + 1) >> 31;
+  int s_xb = (x + ~b + 1) >> 31;
+  int s_bx = (b + ~x + 1) >> 31;
   
-  // (x >= a && b >= x) || (x >= b && a >= x)
+  int x_ge_a = (not_sx & sa) | (same_xa & ~s_xa);
+  int a_ge_x = (not_sa & sx) | (same_xa & ~s_ax);
+  int x_ge_b = (not_sx & sb) | (same_xb & ~s_xb);
+  int b_ge_x = (not_sb & sx) | (same_xb & ~s_bx);
+  
   return ((x_ge_a & b_ge_x) | (x_ge_b & a_ge_x)) & 1;
 }
 
